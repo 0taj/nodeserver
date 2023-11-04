@@ -3,7 +3,7 @@
 import * as path from 'path';
 import * as http from 'http';
 import * as mysql from 'mysql2';
-import * as oas3Tools from 'oas3-tools';
+import * as oas3Tools from 'oas3-tools-cors';
 
 const serverPort: number = 8080;
 
@@ -12,7 +12,15 @@ const options: any =  {
     routing: {
         controllers: path.join(__dirname, './controllers')
     },
-    // openApiValidator: {},
+    openApiValidator: {
+        apiSpec: path.join(__dirname, 'api/openapi.yaml'),
+        validateResponses: true,
+        validateRequests: {
+            allowUnknownQueryParameters: false
+        }, 
+        validateSecurity: true,
+        validateFormats: 'full',
+    },
     // logging: {
     //     format: 'common',
     //     level: 'info',

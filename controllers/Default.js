@@ -96,6 +96,10 @@ function PackageRetrieve(req, res, next, id, xAuthorization) {
 exports.PackageRetrieve = PackageRetrieve;
 function PackageUpdate(req, res, next, body, id, xAuthorization) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log(body);
+        console.log(id);
+        console.log(xAuthorization);
+        console.log(req);
         yield handleRequestAsync(Default.PackageUpdate, req, res, next, body, id, xAuthorization);
     });
 }
@@ -108,8 +112,7 @@ function PackagesList(req, res, next, body, offset, xAuthorization) {
 exports.PackagesList = PackagesList;
 function RegistryReset(req, res, next, xAuthorization) {
     return __awaiter(this, void 0, void 0, function* () {
-        // const xAuthorization = req.headers['x-authorization'];
-        console.log(req);
+        // const xAuthorization = req.headers['x-authorization'];  
         yield handleRequestAsync(Default.RegistryReset, req, res, next, xAuthorization);
     });
 }

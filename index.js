@@ -27,14 +27,20 @@ exports.pool = void 0;
 const path = __importStar(require("path"));
 const http = __importStar(require("http"));
 const mysql = __importStar(require("mysql2"));
-const oas3Tools = __importStar(require("oas3-tools"));
+const oas3Tools = __importStar(require("oas3-tools-cors"));
 const serverPort = 8080;
 // swaggerRouter configuration
 const options = {
     routing: {
         controllers: path.join(__dirname, './controllers')
     },
-    // openApiValidator: {},
+    openApiValidator: {
+        apiSpec: path.join(__dirname, 'api/openapi.yaml'),
+        validateResponses: true,
+        validateRequests: true,
+        validateSecurity: true,
+        validateFormats: 'full',
+    },
     // logging: {
     //     format: 'common',
     //     level: 'info',

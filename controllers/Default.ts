@@ -46,6 +46,10 @@ export async function PackageRetrieve(req: Request, res: Response, next: NextFun
 }
 
 export async function PackageUpdate(req: Request, res: Response, next: NextFunction, body: any, id: string, xAuthorization: string) {
+  console.log(body);
+  console.log(id);
+  console.log(xAuthorization);
+  console.log(req);
   await handleRequestAsync(Default.PackageUpdate, req, res, next, body, id, xAuthorization);
 }
 
@@ -54,9 +58,7 @@ export async function PackagesList(req: Request, res: Response, next: NextFuncti
 }
 
 export async function RegistryReset(req: Request, res: Response, next: NextFunction, xAuthorization: string) {
-  // const xAuthorization = req.headers['x-authorization'];
-  console.log(req);
-  
+  // const xAuthorization = req.headers['x-authorization'];  
   await handleRequestAsync(Default.RegistryReset, req, res, next, xAuthorization);
 }
 

@@ -19,6 +19,7 @@
     "mysql": "^2.18.1",
     "mysql2": "^3.6.2",
     "oas3-tools": "^2.2.3",
+    "oas3-tools-cors": "^2.3.5",
     "swagger-tools": "^0.10.1",
     "tsc": "^2.0.4"
   }
