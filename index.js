@@ -23,11 +23,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.pool = void 0;
+exports.pool = exports.promisePool = void 0;
 const path = __importStar(require("path"));
 const http = __importStar(require("http"));
 const mysql = __importStar(require("mysql2"));
-const oas3Tools = __importStar(require("oas3-tools-cors"));
+const oas3Tools = __importStar(require("oas3-tools"));
 const serverPort = 8080;
 // swaggerRouter configuration
 const options = {
@@ -36,8 +36,12 @@ const options = {
     },
     openApiValidator: {
         apiSpec: path.join(__dirname, 'api/openapi.yaml'),
-        validateResponses: true,
-        validateRequests: true,
+        validateResponses: {
+            removeAdditional: true,
+        },
+        validateRequests: {
+            allowUnknownQueryParameters: false
+        },
         validateSecurity: true,
         validateFormats: 'full',
     },
@@ -56,6 +60,8 @@ const pool = mysql.createPool({
     connectionLimit: 5, // Adjust as needed
 });
 exports.pool = pool;
+const promisePool = pool.promise();
+exports.promisePool = promisePool;
 const expressAppConfig = oas3Tools.expressAppConfig(path.join(__dirname, 'api/openapi.yaml'), options);
 const app = expressAppConfig.getApp();
 // Initialize the Swagger middleware

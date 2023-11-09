@@ -31,16 +31,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MyPage = exports.RegistryReset = exports.PackagesList = exports.PackageUpdate = exports.PackageRetrieve = exports.PackageRate = exports.PackageDelete = exports.PackageCreate = exports.PackageByRegExGet = exports.PackageByNameGet = exports.PackageByNameDelete = exports.CreateAuthToken = void 0;
 const index_js_1 = require("../index.js");
 const writer_1 = require("../utils/writer"); // Import the response function
 const path = __importStar(require("path"));
-const util_1 = __importDefault(require("util"));
-const queryAsync = util_1.default.promisify(index_js_1.pool.query);
+// const queryAsync = util.promisify(pool.query);
 /**
  * Create an access token.
  *
@@ -144,37 +140,23 @@ exports.PackageByRegExGet = PackageByRegExGet;
 function PackageCreate(body, xAuthorization) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            let connection;
-            // Create a Promise to wrap the pool.getConnection call
-            const getConnectionPromise = new Promise((resolve, reject) => {
-                index_js_1.pool.getConnection((err, conn) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    else {
-                        connection = conn;
-                        resolve(1);
-                    }
-                });
-            });
-            // Wait for the connection to be established
-            yield getConnectionPromise;
-            // const connection = await pool.getConnection();
-            const Name = "Package_Name6";
-            const Version = "1.0.0.7";
-            const Content = 'LONG_TEXT6';
-            const URL = 'LONG_TEXT6';
-            const JSProgram = 'JSPROGRAM6';
-            const DataDescription = 'DATA6';
-            const result = yield connection.execute('CALL InsertPackage(?, ?, ?, ?, ?)', [
+            const Name = "Package_Name11";
+            const Version = "1.0.0.8.2";
+            const Content = 'LONG_TEXT10';
+            const URL = 'LONG_TEXT1234';
+            const JSProgram = 'JSPROGRAM325';
+            const DataDescription = 'DATA226';
+            // const result = await connection.execute('CALL InsertPackage(?, ?, ?, ?, ?)', [
+            const [result, fields] = yield index_js_1.promisePool.execute('CALL InsertPackage(?, ?, ?, ?, ?, ?)', [
                 Name,
                 Version,
                 Content,
                 URL,
                 JSProgram,
             ]);
-            connection.release();
+            //connection.release();
             console.log(result);
+            console.log(typeof (result));
             console.log('Stored procedure executed successfully.');
             return (0, writer_1.respondWithCode)(201, "testing");
         }
@@ -246,25 +228,49 @@ function PackageRetrieve(id, xAuthorization) {
         };
         try {
             let connection;
-            // Create a Promise to wrap the pool.getConnection call
-            const getConnectionPromise = new Promise((resolve, reject) => {
-                index_js_1.pool.getConnection((err, conn) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    else {
-                        connection = conn;
-                        resolve(1);
-                    }
-                });
-            });
-            // Wait for the connection to be established
-            yield getConnectionPromise;
-            const test = 3;
-            const [results, fields] = yield connection.execute('CALL GetPackage(?)', [
-                test
+            // const [results, fields] = await promisePool.execute<ProcedureCallPacket<test[]>>(
+            //   'SELECT PM.*, PD.* FROM Package AS P JOIN PackageMetadata AS PM ON P.MetadataID = PM.ID JOIN PackageData AS PD ON P.DataID = PD.ID WHERE P.PackageID = ?',
+            //   [id]
+            // );
+            const [results] = yield index_js_1.promisePool.execute('CALL GetPackage(?)', [
+                id,
             ]);
-            return (0, writer_1.respondWithCode)(200, fields);
+            const isResultSetHeader = (data) => {
+                if (!data || typeof data !== 'object')
+                    return false;
+                const keys = [
+                    'fieldCount',
+                    'affectedRows',
+                    'insertId',
+                    'info',
+                    'serverStatus',
+                    'warningStatus',
+                    'changedRows',
+                ];
+                return keys.every((key) => key in data);
+            };
+            results.forEach((users) => {
+                if (isResultSetHeader(users)) {
+                    console.log('----------------');
+                    console.log('Affected Rows:', users.affectedRows);
+                }
+                else {
+                    users.forEach((user) => {
+                        console.log('----------------');
+                        console.log('id:  ', user.ID);
+                        console.log('name:', user.Name);
+                        console.log('URL: ', user.URL);
+                    });
+                }
+            });
+            // const [results, fields] = await promisePool.execute<test[]>('SELECT * FROM Package', []);
+            // const response = (results[0][0] as { response: YourResponseType }).response;
+            // console.log(typeof(results));
+            // console.log(results[0][0].v_JSON);
+            // const selectResult: RowDataPacket[] = results[0] as RowDataPacket[];
+            console.log(results);
+            // console.log(fields);
+            return (0, writer_1.respondWithCode)(200, results[0][0]);
         }
         catch (error) {
             console.error('Error calling the stored procedure:', error);

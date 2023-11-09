@@ -1,14 +1,19 @@
 'use strict';
 
 import { Request, Response } from 'express';
-import { pool } from '../index.js';
+import { pool, promisePool } from '../index.js';
 import { respondWithCode } from '../utils/writer'; // Import the response function
 import type { AuthenticationRequest, AuthenticationToken, PackageName, PackageRegEx, PackageData, PackageMetadata, PackageID, PackageRating, Package, List } from '../utils/types';
 import * as path from 'path';
-import util from 'util';
+import mysql, {
+  ConnectionOptions,
+  ResultSetHeader,
+  RowDataPacket,
+  ProcedureCallPacket
+} from 'mysql2/promise';
 
 
-const queryAsync = util.promisify(pool.query);
+// const queryAsync = util.promisify(pool.query);
 
 /**
  * Create an access token.
@@ -106,33 +111,15 @@ export async function PackageByRegExGet(body: PackageRegEx, xAuthorization: Auth
  **/
 export async function PackageCreate(body: PackageData, xAuthorization: AuthenticationToken) {
   try {
-    let connection: any;
-    
-    // Create a Promise to wrap the pool.getConnection call
-    const getConnectionPromise = new Promise((resolve, reject) => {
-      pool.getConnection((err, conn) => {
-        if (err) {
-          reject(err);
-        } else {
-          connection = conn;
-          resolve(1);
-        }
-      });
-    });
+    const Name: string = "Package_Name11";
+    const Version: string = "1.0.0.8.2";
+    const Content: string = 'LONG_TEXT10';
+    const URL: string = 'LONG_TEXT1234';
+    const JSProgram: string = 'JSPROGRAM325';
+    const DataDescription: string = 'DATA226';
 
-    // Wait for the connection to be established
-    await getConnectionPromise;
-
-    // const connection = await pool.getConnection();
-
-    const Name: string = "Package_Name6";
-    const Version: string = "1.0.0.7";
-    const Content: string = 'LONG_TEXT6';
-    const URL: string = 'LONG_TEXT6';
-    const JSProgram: string = 'JSPROGRAM6';
-    const DataDescription: string = 'DATA6';
-
-    const result = await connection.execute('CALL InsertPackage(?, ?, ?, ?, ?)', [
+    // const result = await connection.execute('CALL InsertPackage(?, ?, ?, ?, ?)', [
+    const [result, fields] = await promisePool.execute('CALL InsertPackage(?, ?, ?, ?, ?, ?)', [
       Name,
       Version,
       Content,
@@ -140,9 +127,10 @@ export async function PackageCreate(body: PackageData, xAuthorization: Authentic
       JSProgram,
     ]);
 
-    connection.release();
+    //connection.release();
 
     console.log(result);
+    console.log(typeof(result));
     console.log('Stored procedure executed successfully.');
     return respondWithCode(201, "testing");
   } catch (error) {
@@ -211,28 +199,79 @@ export async function PackageRetrieve(id: PackageID, xAuthorization: Authenticat
   try{
     let connection: any;
     
-    // Create a Promise to wrap the pool.getConnection call
-    const getConnectionPromise = new Promise((resolve, reject) => {
-      pool.getConnection((err, conn) => {
-        if (err) {
-          reject(err);
-        } else {
-          connection = conn;
-          resolve(1);
-        }
-      });
-    });
+    // // Create a Promise to wrap the pool.getConnection call
+    // const getConnectionPromise = new Promise((resolve, reject) => {
+    //   pool.getConnection((err, conn) => {
+    //     if (err) {
+    //       reject(err);
+    //     } else {
+    //       connection = conn;
+    //       resolve(1);
+    //     }
+    //   });
+    // });
 
-    // Wait for the connection to be established
-    await getConnectionPromise;
+    // // Wait for the connection to be established
+    // await getConnectionPromise;
 
-    const test = 3;
 
-    const [results, fields] = await connection.execute('CALL GetPackage(?)', [
-      test
+    interface test extends RowDataPacket {
+      ID: string;
+      Name: string;
+    }
+
+    // const [results, fields] = await promisePool.execute<ProcedureCallPacket<test[]>>(
+    //   'SELECT PM.*, PD.* FROM Package AS P JOIN PackageMetadata AS PM ON P.MetadataID = PM.ID JOIN PackageData AS PD ON P.DataID = PD.ID WHERE P.PackageID = ?',
+    //   [id]
+    // );
+
+    const [results] = await promisePool.execute<ProcedureCallPacket<test[]>>('CALL GetPackage(?)', [
+      id,
     ]);
 
-    return respondWithCode(200, fields);
+    const isResultSetHeader = (data: unknown): data is ResultSetHeader => {
+      if (!data || typeof data !== 'object') return false;
+    
+      const keys = [
+        'fieldCount',
+        'affectedRows',
+        'insertId',
+        'info',
+        'serverStatus',
+        'warningStatus',
+        'changedRows',
+      ];
+    
+      return keys.every((key) => key in data);
+    };
+    
+    results.forEach((users) => {
+      if (isResultSetHeader(users)) {
+        console.log('----------------');
+        console.log('Affected Rows:', users.affectedRows);
+      } else {  
+        users.forEach((user) => {
+          console.log('----------------');
+          console.log('id:  ', user.ID);
+          console.log('name:', user.Name);
+          console.log('URL: ', user.URL);
+        });
+      }
+    });
+
+
+    // const [results, fields] = await promisePool.execute<test[]>('SELECT * FROM Package', []);
+
+    // const response = (results[0][0] as { response: YourResponseType }).response;
+    // console.log(typeof(results));
+    // console.log(results[0][0].v_JSON);
+    // const selectResult: RowDataPacket[] = results[0] as RowDataPacket[];
+
+    console.log(results);
+    // console.log(fields);
+
+
+    return respondWithCode(200, results[0][0]);
   } catch (error) {
     console.error('Error calling the stored procedure:', error);
     throw error; // Re-throw the error for the caller to handle

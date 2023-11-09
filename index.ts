@@ -3,7 +3,7 @@
 import * as path from 'path';
 import * as http from 'http';
 import * as mysql from 'mysql2';
-import * as oas3Tools from 'oas3-tools-cors';
+import * as oas3Tools from 'oas3-tools';
 
 const serverPort: number = 8080;
 
@@ -14,7 +14,9 @@ const options: any =  {
     },
     openApiValidator: {
         apiSpec: path.join(__dirname, 'api/openapi.yaml'),
-        validateResponses: true,
+        validateResponses: {
+            removeAdditional: true,
+        },
         validateRequests: {
             allowUnknownQueryParameters: false
         }, 
@@ -36,8 +38,9 @@ const pool = mysql.createPool({
     database: 'mydb',
     connectionLimit: 5, // Adjust as needed
 });
+const promisePool = pool.promise();
 
-export { pool };
+export { promisePool, pool };
 
 const expressAppConfig = oas3Tools.expressAppConfig(path.join(__dirname, 'api/openapi.yaml'), options);
 const app = expressAppConfig.getApp();
