@@ -37,7 +37,9 @@ const options = {
     openApiValidator: {
         apiSpec: path.join(__dirname, 'api/openapi.yaml'),
         validateResponses: true,
-        validateRequests: true,
+        validateRequests: {
+            allowUnknownQueryParameters: false
+        },
         validateSecurity: true,
         validateFormats: 'full',
     },
